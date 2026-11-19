@@ -3,6 +3,7 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 
 from core.exceptions import error_body
+from core.idempotency import IDEMPOTENCY_PARAMETER, idempotent
 from payments import services
 from payments.models import Payment
 from payments.serializers import PaymentCreateSerializer, PaymentSerializer
@@ -28,8 +29,10 @@ class PaymentListCreateView(generics.ListAPIView):
     @extend_schema(
         request=PaymentCreateSerializer,
         responses={201: PaymentSerializer},
+        parameters=[IDEMPOTENCY_PARAMETER],
         summary="Charge a card",
     )
+    @idempotent
     def post(self, request):
         serializer = PaymentCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)

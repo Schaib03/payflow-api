@@ -103,3 +103,4 @@ CELERY_TASK_ALWAYS_EAGER = env_bool("CELERY_TASK_ALWAYS_EAGER", False)
 # Business settings
 PAYFLOW_FEE_PERCENT = Decimal(os.environ.get("PAYFLOW_FEE_PERCENT", "1.5"))
 PAYFLOW_FEE_FIXED = int(os.environ.get("PAYFLOW_FEE_FIXED", "100"))
+IDEMPOTENCY_KEY_TTL_HOURS = int(os.environ.get("IDEMPOTENCY_KEY_TTL_HOURS", "24"))
