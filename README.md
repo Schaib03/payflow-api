@@ -1,6 +1,13 @@
 # payflow-api
 
-A small payments API in Django REST Framework. Merchants sign up, get an API key and
+A payments API in Django REST Framework with idempotent requests, a double-entry ledger and signed webhooks.
+
+[![ci](https://github.com/Schaib03/payflow-api/actions/workflows/ci.yml/badge.svg)](https://github.com/Schaib03/payflow-api/actions/workflows/ci.yml)
+![python](https://img.shields.io/badge/python-3.11-3776AB)
+![django](https://img.shields.io/badge/Django-5.1-092E20)
+![tests](https://img.shields.io/badge/tests-89-brightgreen)
+
+Merchants sign up, get an API key and
 charge (simulated) cards. Every money movement is written to a double-entry ledger, POST
 requests can be retried safely with an `Idempotency-Key`, and merchants are notified
 through signed webhooks delivered by Celery.
