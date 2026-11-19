@@ -21,7 +21,7 @@ class Payment(models.Model):
     merchant = models.ForeignKey(
         "merchants.Merchant", on_delete=models.PROTECT, related_name="payments"
     )
-    # Amounts are integers in minor units (centimes, cents) to avoid float rounding.
+    # minor units (centimes)
     amount = models.PositiveBigIntegerField()
     currency = models.CharField(max_length=3, choices=Currency.choices)
     status = models.CharField(max_length=20, choices=Status.choices)
@@ -29,7 +29,6 @@ class Payment(models.Model):
     fee = models.PositiveBigIntegerField(default=0)
     description = models.CharField(max_length=255, blank=True, default="")
     metadata = models.JSONField(default=dict, blank=True)
-    # Only non-sensitive card data. The full number never reaches the database.
     card_brand = models.CharField(max_length=20)
     card_last4 = models.CharField(max_length=4)
     card_exp_month = models.PositiveSmallIntegerField()

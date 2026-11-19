@@ -2,8 +2,6 @@ from rest_framework.throttling import AnonRateThrottle, SimpleRateThrottle
 
 
 class MerchantRateThrottle(SimpleRateThrottle):
-    """Per-merchant limit, whichever API key is used."""
-
     scope = "merchant"
 
     def get_cache_key(self, request, view):

@@ -30,7 +30,6 @@ def get_account(code, currency, merchant=None):
 
 
 def post_transaction(*, description, reference, legs: Sequence[Leg]):
-    """Write a balanced transaction. Raises UnbalancedTransaction before touching the DB."""
     if len(legs) < 2:
         raise UnbalancedTransaction("A transaction needs at least two legs.")
     currencies = {leg.account.currency for leg in legs}
@@ -58,7 +57,6 @@ def post_transaction(*, description, reference, legs: Sequence[Leg]):
 
 
 def record_charge(*, merchant, currency, amount, fee, reference):
-    """Card charge: the processor owes us the full amount, split between merchant and us."""
     legs = [
         Leg(get_account(Code.PROCESSOR_CLEARING, currency), Direction.DEBIT, amount),
         Leg(get_account(Code.MERCHANT_BALANCE, currency, merchant), Direction.CREDIT, amount - fee),
@@ -69,7 +67,7 @@ def record_charge(*, merchant, currency, amount, fee, reference):
 
 
 def record_refund(*, merchant, currency, amount, reference):
-    """Refund: comes out of the merchant balance. Fees are not returned."""
+    # Fees are not refunded.
     legs = [
         Leg(get_account(Code.MERCHANT_BALANCE, currency, merchant), Direction.DEBIT, amount),
         Leg(get_account(Code.PROCESSOR_CLEARING, currency), Direction.CREDIT, amount),

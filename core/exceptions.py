@@ -1,10 +1,3 @@
-"""Uniform error format.
-
-Every error response has the same shape so clients only need one parser:
-
-    {"error": {"type": "invalid_request_error", "code": "...", "message": "...", ...}}
-"""
-
 import logging
 
 from django.core.exceptions import PermissionDenied
@@ -53,7 +46,6 @@ def _code_for(exc):
 
 
 def api_exception_handler(exc, context):
-    # Same conversions DRF does internally, so the code below only sees APIExceptions.
     if isinstance(exc, Http404):
         exc = exceptions.NotFound()
     elif isinstance(exc, PermissionDenied):

@@ -11,8 +11,7 @@ from webhooks.services import attempt_delivery, backoff_seconds
 logger = logging.getLogger(__name__)
 
 
-# max_retries=None: the attempt counter stored on the delivery decides when to stop,
-# so the limit survives worker restarts and can be changed through settings.
+# Attempts are counted on the delivery row so the limit survives worker restarts.
 @shared_task(bind=True, max_retries=None, acks_late=True)
 def deliver_webhook(self, delivery_id):
     delivery = (

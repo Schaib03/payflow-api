@@ -27,7 +27,6 @@ class LedgerAccount(models.Model):
 
     code = models.CharField(max_length=32, choices=Code.choices)
     currency = models.CharField(max_length=3)
-    # Null for platform accounts, set for merchant accounts.
     merchant = models.ForeignKey(
         "merchants.Merchant",
         null=True,
@@ -56,7 +55,6 @@ class LedgerAccount(models.Model):
         return f"{self.code}:{self.currency}:{owner}"
 
     def balance(self):
-        """Balance on the account's normal side, in minor units."""
         zero = models.Value(0, output_field=models.BigIntegerField())
         totals = self.entries.aggregate(
             debits=Coalesce(Sum("amount", filter=Q(direction=Direction.DEBIT)), zero),
@@ -70,7 +68,6 @@ class LedgerAccount(models.Model):
 class LedgerTransaction(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     description = models.CharField(max_length=255)
-    # What caused the transaction, e.g. "payment:<uuid>" or "refund:<uuid>".
     reference = models.CharField(max_length=80, db_index=True)
     currency = models.CharField(max_length=3)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -83,8 +80,6 @@ class LedgerTransaction(models.Model):
 
 
 class LedgerEntry(models.Model):
-    """One side of a transaction. Entries are append-only: corrections are new transactions."""
-
     transaction = models.ForeignKey(
         LedgerTransaction, on_delete=models.PROTECT, related_name="entries"
     )

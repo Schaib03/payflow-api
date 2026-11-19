@@ -1,5 +1,3 @@
-"""Business metrics, exposed on /metrics next to the django-prometheus ones."""
-
 from prometheus_client import Counter
 
 PAYMENTS = Counter(

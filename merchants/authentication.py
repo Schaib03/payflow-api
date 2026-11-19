@@ -5,12 +5,6 @@ from merchants.models import ApiKey
 
 
 class ApiKeyAuthentication(BaseAuthentication):
-    """Authorization: Bearer sk_test_...
-
-    Keys are random 256-bit tokens, so a fast hash (SHA-256) is enough: there is
-    nothing to brute force, unlike a user-chosen password.
-    """
-
     keyword = "Bearer"
 
     def authenticate(self, request):
@@ -32,5 +26,5 @@ class ApiKeyAuthentication(BaseAuthentication):
         return api_key.merchant, api_key
 
     def authenticate_header(self, request):
-        # Makes DRF answer 401 (with WWW-Authenticate) instead of 403.
+        # 401 with WWW-Authenticate instead of 403
         return self.keyword

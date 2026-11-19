@@ -1,13 +1,6 @@
-"""Card simulator.
-
-There is no real acquirer behind PayFlow. Card numbers are checked with the Luhn
-algorithm and a few well-known test numbers trigger specific declines.
-"""
-
 import datetime
 from dataclasses import dataclass
 
-# Number -> (decline_code, message). Numbers not listed are approved.
 DECLINING_TEST_CARDS = {
     "4000000000000002": ("card_declined", "The card was declined."),
     "4000000000009995": ("insufficient_funds", "The card has insufficient funds."),

@@ -5,12 +5,10 @@ from core.exceptions import error_body
 
 
 def liveness(request):
-    """The process is up. Does not touch dependencies on purpose."""
     return JsonResponse({"status": "ok"})
 
 
 def health(request):
-    """Readiness: the app can serve traffic, which means the database answers."""
     try:
         with connection.cursor() as cursor:
             cursor.execute("SELECT 1")

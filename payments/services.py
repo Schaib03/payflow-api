@@ -71,12 +71,8 @@ def create_payment(*, merchant, amount, currency, card, description="", metadata
 
 
 def refund_payment(*, merchant, payment_id, amount=None, reason=""):
-    """Refund all or part of a payment.
-
-    The payment row is locked (SELECT ... FOR UPDATE) for the whole transaction so two
-    concurrent refunds cannot both read the same refundable amount and over-refund.
-    """
     with transaction.atomic():
+        # A concurrent refund waits here, then sees the updated amount_refunded.
         payment = Payment.objects.select_for_update().get(pk=payment_id, merchant=merchant)
 
         refundable = payment.refundable_amount

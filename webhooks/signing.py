@@ -1,11 +1,4 @@
-"""Webhook signatures.
-
-Header format: PayFlow-Signature: t=<unix timestamp>,v1=<hex HMAC-SHA256>
-
-The signed message is "<timestamp>.<raw body>". Including the timestamp lets the
-receiver reject old messages (replay protection); "v1" leaves room for a future
-scheme without breaking receivers.
-"""
+# PayFlow-Signature: t=<unix time>,v1=<hex hmac-sha256 of "<t>.<raw body>">
 
 import hashlib
 import hmac
@@ -30,7 +23,6 @@ def build_header(secret, payload, timestamp=None):
 
 
 def verify_header(header, payload, secret, tolerance=DEFAULT_TOLERANCE_SECONDS, now=None):
-    """What a receiver does. Raises SignatureVerificationError if anything is off."""
     timestamp = None
     signatures = []
     for item in header.split(","):
@@ -48,7 +40,7 @@ def verify_header(header, payload, secret, tolerance=DEFAULT_TOLERANCE_SECONDS, 
         raise SignatureVerificationError("Timestamp outside the tolerance window.")
 
     expected = compute_signature(secret, timestamp, payload)
-    # compare_digest takes the same time whatever the input, so it leaks nothing.
+    # constant-time comparison
     if not any(hmac.compare_digest(expected, signature) for signature in signatures):
         raise SignatureVerificationError("No matching signature.")
     return True

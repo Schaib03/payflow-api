@@ -22,8 +22,6 @@ class WebhookEndpointSerializer(serializers.ModelSerializer):
 
 
 class WebhookEndpointCreatedSerializer(WebhookEndpointSerializer):
-    """Only the creation response includes the signing secret."""
-
     class Meta(WebhookEndpointSerializer.Meta):
         fields = [*WebhookEndpointSerializer.Meta.fields, "secret"]
         read_only_fields = [*WebhookEndpointSerializer.Meta.read_only_fields, "secret"]

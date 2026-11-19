@@ -6,8 +6,6 @@ _VALID_ID = re.compile(r"^[A-Za-z0-9._-]{1,64}$")
 
 
 class RequestIdMiddleware:
-    """Propagates X-Request-Id (or generates one) so a request can be traced in logs."""
-
     def __init__(self, get_response):
         self.get_response = get_response
 

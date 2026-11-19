@@ -14,12 +14,6 @@ from webhooks.signing import SIGNATURE_HEADER, build_header
 
 
 def emit_event(merchant, event_type, data):
-    """Record an event and schedule one delivery per subscribed endpoint.
-
-    Must run inside the transaction that made the change: deliveries are only
-    queued once that transaction commits, so a rolled back payment never
-    produces a webhook.
-    """
     from webhooks.tasks import deliver_webhook
 
     event = Event.objects.create(
@@ -35,6 +29,7 @@ def emit_event(merchant, event_type, data):
     deliveries = WebhookDelivery.objects.bulk_create(
         WebhookDelivery(event=event, endpoint=endpoint) for endpoint in endpoints
     )
+    # Enqueue after commit: a rolled back payment must not send a webhook.
     for delivery in deliveries:
         transaction.on_commit(functools.partial(deliver_webhook.delay, str(delivery.id)))
     return event
@@ -51,11 +46,6 @@ def build_payload(event):
 
 
 def backoff_seconds(attempt):
-    """Exponential backoff with a cap and up to 10% jitter.
-
-    attempt=1 -> ~base, 2 -> ~2*base, 3 -> ~4*base ...
-    Jitter spreads retries out so a recovering endpoint is not hit by all of them at once.
-    """
     delay = min(
         settings.WEBHOOK_BACKOFF_BASE_SECONDS * 2 ** (attempt - 1),
         settings.WEBHOOK_BACKOFF_MAX_SECONDS,
@@ -64,7 +54,6 @@ def backoff_seconds(attempt):
 
 
 def attempt_delivery(delivery):
-    """POST the event once. Returns True on a 2xx answer."""
     endpoint = delivery.endpoint
     payload = build_payload(delivery.event)
     headers = {

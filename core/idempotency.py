@@ -1,15 +1,3 @@
-"""Idempotency-Key support for POST endpoints.
-
-The first request with a given key claims it (unique row per merchant + key),
-runs, and stores its response. A retry with the same key and the same body gets
-the stored response back without running the view again. The same key with a
-different body is a client bug and gets a 422.
-
-Responses are only stored when the request changed state: 2xx, and 402 because
-a declined card still creates a failed payment. For validation errors and
-server errors the key is released so the client can fix the request and retry.
-"""
-
 import functools
 import hashlib
 import json
@@ -58,6 +46,7 @@ def request_fingerprint(request):
     return hashlib.sha256(raw.encode()).hexdigest()
 
 
+# 402 is stored too: a declined card still created a payment.
 def _should_store(response):
     return 200 <= response.status_code < 300 or response.status_code == 402
 
@@ -67,7 +56,7 @@ def _jsonable(data):
 
 
 def _claim(merchant, key, fingerprint):
-    """Insert the key, or return the existing row. The unique constraint settles races."""
+    # The unique constraint decides which of two concurrent requests wins.
     try:
         with transaction.atomic():
             record = IdempotencyKey.objects.create(
@@ -85,8 +74,6 @@ def _claim(merchant, key, fingerprint):
 
 
 def idempotent(view_method):
-    """Decorator for APIView.post (runs after authentication)."""
-
     @functools.wraps(view_method)
     def wrapper(view, request, *args, **kwargs):
         key = request.headers.get(HEADER)

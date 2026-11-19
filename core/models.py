@@ -10,8 +10,7 @@ class IdempotencyKey(models.Model):
         "merchants.Merchant", on_delete=models.CASCADE, related_name="idempotency_keys"
     )
     key = models.CharField(max_length=255)
-    # SHA-256 of method + path + canonical JSON body. The body itself is not stored
-    # because it can contain a card number.
+    # Hash only: the body can contain a card number.
     request_fingerprint = models.CharField(max_length=64)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.IN_PROGRESS)
     response_status = models.PositiveSmallIntegerField(null=True, blank=True)
