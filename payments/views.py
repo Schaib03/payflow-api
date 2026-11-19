@@ -1,3 +1,4 @@
+from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import generics, status
 from rest_framework.response import Response
@@ -5,8 +6,13 @@ from rest_framework.response import Response
 from core.exceptions import error_body
 from core.idempotency import IDEMPOTENCY_PARAMETER, idempotent
 from payments import services
-from payments.models import Payment
-from payments.serializers import PaymentCreateSerializer, PaymentSerializer
+from payments.models import Payment, Refund
+from payments.serializers import (
+    PaymentCreateSerializer,
+    PaymentSerializer,
+    RefundCreateSerializer,
+    RefundSerializer,
+)
 
 
 class PaymentListCreateView(generics.ListAPIView):
@@ -54,3 +60,29 @@ class PaymentDetailView(generics.RetrieveAPIView):
 
     def get_queryset(self):
         return Payment.objects.filter(merchant=self.request.user)
+
+
+class PaymentRefundListCreateView(generics.ListAPIView):
+    serializer_class = RefundSerializer
+
+    def get_payment(self):
+        return get_object_or_404(Payment, pk=self.kwargs["pk"], merchant=self.request.user)
+
+    def get_queryset(self):
+        return Refund.objects.filter(payment=self.get_payment())
+
+    @extend_schema(
+        request=RefundCreateSerializer,
+        responses={201: RefundSerializer},
+        parameters=[IDEMPOTENCY_PARAMETER],
+        summary="Refund a payment, fully or partially",
+    )
+    @idempotent
+    def post(self, request, pk):
+        serializer = RefundCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        payment = self.get_payment()
+        refund = services.refund_payment(
+            merchant=request.user, payment_id=payment.pk, **serializer.validated_data
+        )
+        return Response(RefundSerializer(refund).data, status=status.HTTP_201_CREATED)

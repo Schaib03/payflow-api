@@ -4,7 +4,7 @@ import re
 from rest_framework import serializers
 
 from payments import cards
-from payments.models import Currency, Payment
+from payments.models import Currency, Payment, Refund
 
 MIN_AMOUNT = 500  # 5.00 in any supported currency; keeps fees below the amount
 MAX_AMOUNT = 100_000_000
@@ -84,4 +84,18 @@ class PaymentSerializer(serializers.ModelSerializer):
             "failure_message",
             "created_at",
         ]
+        read_only_fields = fields
+
+
+class RefundCreateSerializer(serializers.Serializer):
+    amount = serializers.IntegerField(
+        min_value=1, required=False, help_text="Defaults to the remaining refundable amount."
+    )
+    reason = serializers.ChoiceField(choices=Refund.Reason.choices, required=False)
+
+
+class RefundSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Refund
+        fields = ["id", "payment", "amount", "currency", "reason", "created_at"]
         read_only_fields = fields

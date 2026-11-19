@@ -57,3 +57,23 @@ class Payment(models.Model):
         if self.status not in (self.Status.SUCCEEDED, self.Status.PARTIALLY_REFUNDED):
             return 0
         return self.amount - self.amount_refunded
+
+
+class Refund(models.Model):
+    class Reason(models.TextChoices):
+        REQUESTED_BY_CUSTOMER = "requested_by_customer"
+        DUPLICATE = "duplicate"
+        FRAUDULENT = "fraudulent"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    payment = models.ForeignKey(Payment, on_delete=models.PROTECT, related_name="refunds")
+    amount = models.PositiveBigIntegerField()
+    currency = models.CharField(max_length=3, choices=Currency.choices)
+    reason = models.CharField(max_length=30, choices=Reason.choices, blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"refund {self.id} of {self.amount} {self.currency}"
