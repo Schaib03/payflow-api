@@ -5,6 +5,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from core.throttling import SignupRateThrottle
 from merchants.models import ApiKey
 from merchants.serializers import MerchantSerializer, MerchantSignupResponseSerializer
 
@@ -12,6 +13,7 @@ from merchants.serializers import MerchantSerializer, MerchantSignupResponseSeri
 class MerchantSignupView(APIView):
     authentication_classes = []
     permission_classes = [AllowAny]
+    throttle_classes = [SignupRateThrottle]
 
     @extend_schema(
         request=MerchantSerializer,

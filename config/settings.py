@@ -82,6 +82,27 @@ REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "core.pagination.CreatedAtCursorPagination",
     "PAGE_SIZE": 20,
     "UNAUTHENTICATED_USER": None,
+    "DEFAULT_THROTTLE_CLASSES": [
+        "core.throttling.MerchantRateThrottle",
+        "rest_framework.throttling.AnonRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "merchant": os.environ.get("THROTTLE_MERCHANT_RATE", "300/min"),
+        "anon": os.environ.get("THROTTLE_ANON_RATE", "60/min"),
+        "signup": os.environ.get("THROTTLE_SIGNUP_RATE", "20/hour"),
+    },
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "PayFlow API",
+    "DESCRIPTION": (
+        "Payments API with idempotent requests, a double-entry ledger and signed webhooks. "
+        "Authenticate with `Authorization: Bearer sk_test_...`. Amounts are in minor units."
+    ),
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "SERVE_PERMISSIONS": ["rest_framework.permissions.AllowAny"],
+    "COMPONENT_SPLIT_REQUEST": True,
 }
 
 LOGGING = {

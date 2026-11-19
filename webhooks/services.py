@@ -8,6 +8,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.db import transaction
 from django.utils import timezone
 
+from core import metrics
 from webhooks.models import Event, WebhookDelivery
 from webhooks.signing import SIGNATURE_HEADER, build_header
 
@@ -92,6 +93,7 @@ def attempt_delivery(delivery):
         delivery.last_status_code = response.status_code
         delivery.last_error = "" if delivered else f"HTTP {response.status_code}"
 
+    metrics.WEBHOOK_DELIVERIES.labels("success" if delivered else "failure").inc()
     if delivered:
         delivery.status = WebhookDelivery.Status.SUCCEEDED
         delivery.delivered_at = timezone.now()

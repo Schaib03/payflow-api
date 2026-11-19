@@ -3,6 +3,7 @@ from decimal import ROUND_HALF_UP, Decimal
 from django.conf import settings
 from django.db import transaction
 
+from core import metrics
 from core.exceptions import InvalidRequest
 from ledger import services as ledger
 from payments import cards
@@ -62,6 +63,10 @@ def create_payment(*, merchant, amount, currency, card, description="", metadata
             payment.failure_message = result.message
             payment.save()
             emit_event(merchant, "payment.failed", _payment_data(payment))
+
+    metrics.PAYMENTS.labels(payment.status, currency).inc()
+    if payment.status == Payment.Status.SUCCEEDED:
+        metrics.PAYMENT_AMOUNT.labels(currency).inc(amount)
     return payment
 
 
@@ -99,4 +104,6 @@ def refund_payment(*, merchant, payment_id, amount=None, reason=""):
             reference=f"refund:{refund.id}",
         )
         emit_event(merchant, "refund.created", RefundSerializer(refund).data)
+
+    metrics.REFUNDS.labels(refund.currency).inc()
     return refund
