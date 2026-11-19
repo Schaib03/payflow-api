@@ -7,6 +7,8 @@ urlpatterns = [
     path("health/live", core_views.liveness, name="health-live"),
     path("", include("django_prometheus.urls")),
     path("v1/", include("merchants.urls")),
+    path("v1/", include("payments.urls")),
+    path("v1/", include("ledger.urls")),
 ]
 
 handler404 = "core.views.not_found"

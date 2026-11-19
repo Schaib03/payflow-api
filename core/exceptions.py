@@ -7,6 +7,8 @@ Every error response has the same shape so clients only need one parser:
 
 import logging
 
+from django.core.exceptions import PermissionDenied
+from django.http import Http404
 from rest_framework import exceptions, status
 from rest_framework.response import Response
 from rest_framework.views import exception_handler as drf_exception_handler
@@ -51,6 +53,12 @@ def _code_for(exc):
 
 
 def api_exception_handler(exc, context):
+    # Same conversions DRF does internally, so the code below only sees APIExceptions.
+    if isinstance(exc, Http404):
+        exc = exceptions.NotFound()
+    elif isinstance(exc, PermissionDenied):
+        exc = exceptions.PermissionDenied()
+
     response = drf_exception_handler(exc, context)
 
     if response is None:

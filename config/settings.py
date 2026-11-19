@@ -27,6 +27,8 @@ INSTALLED_APPS = [
     "drf_spectacular",
     "core",
     "merchants",
+    "ledger",
+    "payments",
 ]
 
 MIDDLEWARE = [
