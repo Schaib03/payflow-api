@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     "merchants",
     "ledger",
     "payments",
+    "webhooks",
 ]
 
 MIDDLEWARE = [
@@ -104,3 +105,10 @@ CELERY_TASK_ALWAYS_EAGER = env_bool("CELERY_TASK_ALWAYS_EAGER", False)
 PAYFLOW_FEE_PERCENT = Decimal(os.environ.get("PAYFLOW_FEE_PERCENT", "1.5"))
 PAYFLOW_FEE_FIXED = int(os.environ.get("PAYFLOW_FEE_FIXED", "100"))
 IDEMPOTENCY_KEY_TTL_HOURS = int(os.environ.get("IDEMPOTENCY_KEY_TTL_HOURS", "24"))
+
+# Webhooks: with 8 attempts and a 30s base, retries are spread over about an hour
+# (30s, 1m, 2m, 4m, 8m, 16m, 32m). The cap matters if the attempt count is raised.
+WEBHOOK_MAX_ATTEMPTS = int(os.environ.get("WEBHOOK_MAX_ATTEMPTS", "8"))
+WEBHOOK_BACKOFF_BASE_SECONDS = int(os.environ.get("WEBHOOK_BACKOFF_BASE_SECONDS", "30"))
+WEBHOOK_BACKOFF_MAX_SECONDS = int(os.environ.get("WEBHOOK_BACKOFF_MAX_SECONDS", str(6 * 3600)))
+WEBHOOK_TIMEOUT_SECONDS = float(os.environ.get("WEBHOOK_TIMEOUT_SECONDS", "10"))

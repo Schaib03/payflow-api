@@ -2,13 +2,13 @@ import pytest
 from django.core.cache import cache
 from rest_framework.test import APIClient
 
-from config.celery import app as celery_app
-
 
 @pytest.fixture(autouse=True)
-def _isolated_environment():
-    celery_app.conf.task_always_eager = True
-    celery_app.conf.task_eager_propagates = True
+def _isolated_environment(settings):
+    # Celery is configured with namespace="CELERY" from the Django settings object,
+    # so tasks run inline when the CELERY_* settings say so.
+    settings.CELERY_TASK_ALWAYS_EAGER = True
+    settings.CELERY_TASK_EAGER_PROPAGATES = True
     cache.clear()
     yield
     cache.clear()

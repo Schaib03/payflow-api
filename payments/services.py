@@ -7,11 +7,17 @@ from core.exceptions import InvalidRequest
 from ledger import services as ledger
 from payments import cards
 from payments.models import Payment, Refund
+from payments.serializers import PaymentSerializer, RefundSerializer
+from webhooks.services import emit_event
 
 
 class RefundNotAllowed(InvalidRequest):
     default_code = "refund_not_allowed"
     default_detail = "This payment cannot be refunded."
+
+
+def _payment_data(payment):
+    return PaymentSerializer(payment).data
 
 
 def compute_fee(amount):
@@ -49,11 +55,13 @@ def create_payment(*, merchant, amount, currency, card, description="", metadata
                 fee=payment.fee,
                 reference=f"payment:{payment.id}",
             )
+            emit_event(merchant, "payment.succeeded", _payment_data(payment))
         else:
             payment.status = Payment.Status.FAILED
             payment.failure_code = result.decline_code
             payment.failure_message = result.message
             payment.save()
+            emit_event(merchant, "payment.failed", _payment_data(payment))
     return payment
 
 
@@ -90,4 +98,5 @@ def refund_payment(*, merchant, payment_id, amount=None, reason=""):
             amount=amount,
             reference=f"refund:{refund.id}",
         )
+        emit_event(merchant, "refund.created", RefundSerializer(refund).data)
     return refund
